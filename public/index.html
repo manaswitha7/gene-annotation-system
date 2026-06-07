@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Gene Annotation Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Gene Annotation Management System</h1>
+
+    <div class="container">
+
+        <input type="text" id="geneId" placeholder="Gene ID">
+
+        <input type="text" id="geneName" placeholder="Gene Name">
+
+        <input type="text" id="organism" placeholder="Organism">
+
+        <input type="text" id="chromosomeNumber"
+            placeholder="Chromosome Number">
+
+        <input type="text" id="functionalAnnotation"
+            placeholder="Functional Annotation">
+
+        <button onclick="addGene()">
+            Add Gene
+        </button>
+
+    </div>
+
+    <h2>Stored Gene Records</h2>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Gene ID</th>
+                <th>Gene Name</th>
+                <th>Organism</th>
+                <th>Chromosome</th>
+                <th>Annotation</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="geneTable">
+
+        </tbody>
+
+    </table>
+
+<script>
+
+function loadGenes(){
+
+    fetch("/annotations")
+    .then(res => res.json())
+    .then(data => {
+
+        let output = "";
+
+        data.forEach(gene => {
+
+            output += `
+            <tr>
+                <td>${gene.geneId}</td>
+                <td>${gene.geneName}</td>
+                <td>${gene.organism}</td>
+                <td>${gene.chromosomeNumber}</td>
+                <td>${gene.functionalAnnotation}</td>
+
+                <td>
+                    <button onclick="deleteGene('${gene.geneId}')">
+                        Delete
+                    </button>
+
+                    <button onclick="updateGene('${gene.geneId}')">
+                        Update
+                    </button>
+                </td>
+            </tr>
+            `;
+        });
+
+        document.getElementById("geneTable").innerHTML = output;
+    });
+}
+
+
+function addGene(){
+
+    const gene = {
+
+        geneId:
+        document.getElementById("geneId").value,
+
+        geneName:
+        document.getElementById("geneName").value,
+
+        organism:
+        document.getElementById("organism").value,
+
+        chromosomeNumber:
+        document.getElementById("chromosomeNumber").value,
+
+        functionalAnnotation:
+        document.getElementById("functionalAnnotation").value
+    };
+
+    fetch("/annotations",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify(gene)
+
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+        loadGenes();
+    });
+}
+
+
+function deleteGene(id){
+
+    fetch(`/annotations/${id}`,{
+
+        method:"DELETE"
+
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+        loadGenes();
+    });
+}
+
+
+function updateGene(id){
+
+    const geneName =
+    prompt("Enter New Gene Name");
+
+    const organism =
+    prompt("Enter New Organism");
+
+    const chromosomeNumber =
+    prompt("Enter New Chromosome Number");
+
+    const functionalAnnotation =
+    prompt("Enter New Annotation");
+
+    fetch(`/annotations/${id}`,{
+
+        method:"PUT",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            geneName,
+            organism,
+            chromosomeNumber,
+            functionalAnnotation
+        })
+
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        alert(data.message);
+
+        loadGenes();
+    });
+}
+
+loadGenes();
+
+</script>
+
+</body>
+</html>
